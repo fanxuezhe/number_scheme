@@ -12,13 +12,6 @@ from os import path,access,R_OK
 
 
 
-
-
-
-
-
-
-
 ##########
 #PART2##
 ###########
@@ -51,19 +44,24 @@ def hmmer_handle_analysis(hmmer_parse):
     anno_domain=[]#为每一个序列所有的结构域定义一个列表，这个列表将来包含在anno_seq中
     
     for annotations in hmmer_parse:
-        print annotations
+        #print dir(annotations.hsps)
         anno_domain_part=[]#这个列表将会记录单个结构域的注释信息，这个列表将会包含在anno_domain中
-        for query in annotations:#这里的query也只是代表一个序列
-            #print query
-            for hsp in query.hsps[0]:#对每一个hsp进行遍历,记录其中的详细信息，hmm开始，结束，query开始结束
+        #for query in annotations:#这里的query也只是代表一个序列
+        #print query
+        i=0#控制仅取第一个最好的匹配
+        for hsp in annotations.hsps:#对每一个hsp进行遍历,记录其中的详细信息，hmm开始，结束，query开始结束
+            if i<1:
+                #print i
                 query_id=hsp.query_id
+                #print "query_id%s"%(query_id)
                 hmm_start=hsp.hit_start
                 hmm_end=hsp.hit_end
                 query_start=hsp.query_start
                 query_end=hsp.query_end        
                 hmm_stat_origin=hsp.aln_annotation["RF"]#取出来hmm状态的标志序列
-                #print hmm_stat_origin
+                print hmm_stat_origin
                 query_stat_origin=hsp.aln_annotation["PP"]#取出query序列状态的标志序列
+                print query_stat_origin
                 len_insert=0
                 len_delete=0
                 insert_pos_list=[]#记录所有的插入的连续的位置
@@ -87,21 +85,23 @@ def hmmer_handle_analysis(hmmer_parse):
                 #在利用一个for循环记录下来每个缺失位置的起始位置和长度
                 for pos,stat in enumerate(query_stat_origin):
                     if stat==".":
+                        #print "kkkkkkkkkkkkkkkkkkkkkk"
                         del_pos_list.append(pos+hmm_start)
-                    elif stat=="x" and query_stat_origin[pos-1]==".":
+                    elif stat!="." and query_stat_origin[pos-1]==".":
                         del_pos.append(del_pos_list[0])
                         del_len.append(del_pos_list[-1]-del_pos_list[0]+1)
                         del_pos_list=[]
-                    elif stat=="x" and query_stat_origin[pos-1]!=".":
+                    elif stat!="." and query_stat_origin[pos-1]!=".":
                         del_pos_list=[]
                 if insert_pos and insert_len:
                     for i in xrange(len(insert_pos)):
                         all_insert.append((insert_pos[i],insert_len[i]))#利用元组的方式返回插入序列的开始位置和长度，记录在anno_domain中
                 if del_pos and del_len:
-                    for i in xrange(len(insert_pos)):
+                    for i in xrange(len(del_pos)):
                         all_del.append((del_pos[i],del_len[i]))#利用元组的方式返回插入序列的开始位置和长度，记录在anno_domain中
                 anno_domain_part.append((all_insert,all_del))#同时记录下每个结构域的开始和结束的位置以及序列匹配的开始和结束的位置
-                #print anno_domain_part
+                i+=1
+                print anno_domain_part
                 #anno_domain_part.append(all_del)
                 #print anno_domain_part
         anno_domain.append((query_id,hmm_start,hmm_end,query_start,query_end,anno_domain_part))#最后一项为插入缺失位置和长度的记录，假如结构域为两个那么最后一项为多个列表的元组
@@ -113,7 +113,7 @@ def hmmer_handle_analysis(hmmer_parse):
 #function4:结合hmmer柄文件分析的结果,得出不同结构域的起始和结束的位置
 
 def get_pos_domain(anno_seq,seq_dict,scheme="IMGT"):#目前只考虑一个domain的情况
-    schemes_limit={"IMGT":[0,25,33,55,65,104,117],
+    schemes_limit={"IMGT":[0,26,38,55,65,104,117],
               "AHO":[],
               "Kabat":[],
               "Chothia":[]}
@@ -221,7 +221,7 @@ def get_pos_domain(anno_seq,seq_dict,scheme="IMGT"):#目前只考虑一个domain
 #PART3##
 ###########
 #这一部分主要是对获取的序列进行编号               
-            
+        
             
             
         
@@ -237,9 +237,9 @@ def get_pos_domain(anno_seq,seq_dict,scheme="IMGT"):#目前只考虑一个domain
 #首先转入到目标文件夹，并且读取相应的hmmer输出的文件
 #下面是自定义文件名和路径名，file_path,hmmer_output,fasta_file分别是hmmer输出文件所在的文件夹，hmmer输出的文件名，含有氨基酸序列的fasta文件名
 if __name__=="__main__":
-    file_path="E:\HMM_transfer\HMM_transfer_3ed"
-    hmmer_output="VH_output_little.txt"
-    fasta_file="Genesp-VH_AA.fasta"
+    file_path="E:\Program\project\yanli\FGS_2018.11.8\hmm_out"
+    hmmer_output="051602-6 analysis_sequences_VH.txt"
+    fasta_file="051602-6 analysis_sequences_VH.fasta"
     #利用判断语句检测目标文件夹目录中有没有该文件以及fasta_file是不是fasta文件
     hmmer_file=path.join(file_path,hmmer_output)
     fasta_name,postfix=os.path.splitext(fasta_file)
@@ -254,6 +254,7 @@ if __name__=="__main__":
     annotation_all_seq=hmmer_handle_analysis(hmmer_handle)
     print annotation_all_seq
     domain_sequences=get_pos_domain(annotation_all_seq,seq_dict)
+    print domain_sequences
 
 
    
