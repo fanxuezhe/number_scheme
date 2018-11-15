@@ -1,0 +1,7 @@
+这是该程序的说明文件：
+第一版程序（version-1.1）
+1、该程序目的是利用已有的氨基酸序列的fasta文件进行分析，取出相应的CDR和FR序列（目前只支持IMGT）,返回的数据以字典的数据形式呈现
+2、目前支持对VH序列的N端的部分冗余序列进行切除。
+3、支持的scheme有：IMGT,Kabat，Chothia，LONGEST_CDR_L，LONGEST_CDR_H(按照最大长度取出CDR序列，是IMGT,Kabat，Chothia的混合体)
+4、将程序最大程度的整合到模块中
+5、一代测序的程序也包含到了其中，每个function的功能都会在该function的前面注释好，下方是运行过或者调试的程序，分别以运行的次数进行命名
